@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "functions": {
+    "api/mod.js":   { "maxDuration": 20 },
+    "api/specs.js": { "maxDuration": 45 }
+  }
+}
