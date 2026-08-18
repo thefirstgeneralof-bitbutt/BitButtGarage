@@ -14,7 +14,12 @@ same maths — rebuilt as one readable file with your own garage on top.
 | `api/specs.js` | Looks a real car up on the web and returns its published figures. |
 | `package.json` | Just `"type": "module"`, so the functions can import the adapter. |
 | `manifest.json`, `icon-192.png`, `icon-512.png` | Home-screen app icon and PWA config. |
-| `vercel.json` | Function timeouts (specs needs longer — it's doing web searches). |
+
+> **Deployed 2026-08-16** to https://bitbutt-garage.vercel.app (Vercel team TFG-pol,
+> repo `thefirstgeneralof-bitbutt/BitButtGarage`). There is deliberately **no
+> `vercel.json`** — Vercel auto-detects `api/*.js` as functions, and an earlier config
+> file only got in the way. If a spec lookup ever times out, raise the limit in
+> Vercel → Settings → Functions rather than adding the file back.
 
 ## Deploy
 
@@ -65,6 +70,42 @@ fat on wider tyres, grows a wing.
 **Controls.** ⚙ tab: accent and gain/loss colours, dark or light, comfortable or compact,
 animation on/off, which stats appear and in what order (the top three are the big
 numbers), and units — imperial, metric, or **both side by side**.
+
+## Locking it (the family code)
+
+The site is public, but there is no server holding anybody's garage — every car,
+photo and build lives in the browser that made it. A stranger who finds the URL sees
+an empty garage with the eight built-ins, and cannot see or touch yours.
+
+What *is* worth protecting is the AI, because those calls come out of your account.
+So the lock sits in front of the whole app and in front of both AI endpoints.
+
+Set one variable in Vercel → Settings → Environment Variables:
+
+```
+FAMILY_CODE = whatever-you-like
+```
+
+Redeploy, and the app asks for it once per device. Case and spaces are ignored, so
+`Kubica 81` and `kubica81` are the same code. After a correct answer the phone keeps
+a derived token — not the code itself — and opens straight away from then on, even
+with no signal. A wrong answer costs the guesser three quarters of a second, which
+makes working through a six-character code pointless.
+
+**Leave `FAMILY_CODE` unset and nothing changes** — no lock screen, open AI, exactly
+as the app behaved before. That is deliberate: a half-finished deploy can never lock
+you out of your own garage.
+
+Settings → **Lock this phone** clears the token if you lend the phone out. Change
+`FAMILY_CODE` in Vercel and every device is logged out at once.
+
+> This is a family lock, not a bank vault. `index.html` is still downloadable by
+> anyone, so treat it as "keeps strangers and search engines out", not as a secret.
+> The AI endpoints, which are the part that costs money, are genuinely closed.
+
+Two things worth pairing it with: keep the Moonshot account **prepaid** with a small
+balance, so the worst case is capped at whatever you topped up; and remember Vercel's
+Hobby tier is **non-commercial use only**.
 
 ## Where your data lives
 
