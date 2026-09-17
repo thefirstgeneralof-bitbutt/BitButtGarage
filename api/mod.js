@@ -4,6 +4,9 @@
 import { chat } from './_provider.js';
 import { checkGate } from './_gate.js';
 
+/* One round trip, no search — but a slow model still beats the 10s default. */
+export const maxDuration = 30;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   if (!checkGate(req)) return res.status(401).json({ error: 'locked', locked: true });

@@ -4,6 +4,12 @@
 import { chatWithSearch } from './_provider.js';
 import { checkGate } from './_gate.js';
 
+/* A grounded spec lookup is two round trips to the model with a web search in
+   between, and that regularly takes 20-40 seconds. Vercel's default cut-off is
+   10, which killed every lookup before it could answer — the app just span.
+   60 is the ceiling on the Hobby plan. */
+export const maxDuration = 60;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   if (!checkGate(req)) return res.status(401).json({ error: 'locked', locked: true });
