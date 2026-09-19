@@ -49,8 +49,18 @@ function carBlock(c) {
     else if ((c.est || []).includes(k)) flag = ' (ESTIMATE — nobody publishes this)';
     lines.push('  ' + k + ': ' + (v == null ? 'NOT PUBLISHED' : v) + ' ' + STAT_UNITS[k] + flag);
   }
+  let build = '';
+  if (c.build && Array.isArray(c.build.mods)) {
+    build = '\nBUILD on the tune screen right now: ' +
+      (c.build.mods.length
+        ? c.build.mods.map(m => m.label + ' ("' + m.said + '")').join(', ')
+        : 'stock, nothing installed yet') +
+      (c.build.now ? '. Simulated figures with the build: ' +
+        Object.keys(c.build.now).map(k => k + ' ' + c.build.now[k]).join(', ') : '') +
+      '. The app already simulates a part when he types it (turbo, wider tires, ecu tune, rear seat delete, big rear wing, lower the suspension, or anything else via AI). Modifications are pretend — nothing is bought.';
+  }
   return 'Car card open right now: ' + [c.year, c.make, c.model].filter(Boolean).join(' ') +
-    (c.engine ? ' — engine: ' + c.engine : '') + '\n' + lines.join('\n') +
+    (c.engine ? ' — engine: ' + c.engine : '') + '\n' + lines.join('\n') + build +
     (c.note ? '\nCard note: ' + c.note : '') +
     (c.srcName ? '\nCard source: ' + c.srcName + (c.srcUrl ? ' ' + c.srcUrl : '') : '') +
     (c.builtin ? '\nThis is one of the app\'s eight built-in cars; its figures were checked by the developer, but the US brochure was used where markets differ.' : '\nThis car was added by the kid or looked up by AI; treat its figures with more suspicion.');
@@ -65,7 +75,8 @@ function systemPrompt(lang, car) {
     'SCOPE: cars, engines, motorsport, tuning, driving, and this app. If asked about homework, school subjects, or anything else unrelated to cars: reply with one friendly line saying that in here you are the mechanic and the garage is for cars, mention that BitButt Learn is the place for that, and set "learn": true. Do not answer the homework.',
     'FACTS: when a question needs a fact you are not certain of, or a figure that differs between markets (US vs Europe/Japan, hp vs PS, mph vs km/h, US brochure rounding), search the web. Prefer the manufacturer\'s home-market or global spec sheet over a US brochure. Say which source you used. If you searched and still are not sure, say so.',
     'FIXES: the car card figures are below with their units. If a source shows a card figure is wrong or came from the wrong market, propose a fix in "proposals" — value converted to the card\'s unit, one short reason, and the source URL. Never propose a value you did not see in a source. Never propose for a NOT PUBLISHED figure unless a manufacturer publishes it. Never propose changes to figures already verified by the kid unless you are sure they are wrong. The kid approves or skips every proposal; you never change anything yourself.',
-    'FORMAT: reply with ONLY minified JSON, no prose around it, no code fences: {"answer":"...","proposals":[{"key":"hp|torque|top|zero|weight|grip|downforce","value":number,"unit":"card unit","why":"one short sentence","source":"url"}],"learn":false,"sources":["url"]}',
+    'IDEAS: when he asks what to do, what to change, what is best, says he is not sure, or asks about a modification, add 1 to 3 "ideas": each is a modification he can install by typing "say" (a short phrase in ' + L + ', 2 to 5 words, e.g. "add a bigger turbo", "lighter wheels", "roll cage") with "why" (one short sentence: what it does to THIS car and its build). Pick what fits this car and what is not already installed. Otherwise "ideas" is an empty list.',
+    'FORMAT: reply with ONLY minified JSON, no prose around it, no code fences: {"answer":"...","proposals":[{"key":"hp|torque|top|zero|weight|grip|downforce","value":number,"unit":"card unit","why":"one short sentence","source":"url"}],"ideas":[{"say":"...","why":"..."}],"learn":false,"sources":["url"]}',
     '',
     carBlock(car)
   ].join('\n');
@@ -82,7 +93,7 @@ function parseLoose(t) {
   if (m) {
     let answer = m[1];
     try { answer = JSON.parse('"' + m[1] + '"'); } catch (e) { /* keep raw */ }
-    return { answer: answer.replace(/\s*\[[\d.,\s]*$/, '').trim(), proposals: [], learn: false, sources: [] };
+    return { answer: answer.replace(/\s*\[[\d.,\s]*$/, '').trim(), proposals: [], ideas: [], learn: false, sources: [] };
   }
   return s.startsWith('{') ? null : { answer: s };
 }
@@ -93,6 +104,12 @@ function cleanProposals(p) {
   return p.filter(x => x && KEYS.includes(x.key) && isFinite(Number(x.value)) && /^https?:\/\//.test(String(x.source || '')))
     .slice(0, 4)
     .map(x => ({ key: x.key, value: Number(x.value), unit: String(x.unit || '').slice(0, 12), why: String(x.why || '').slice(0, 220), source: String(x.source).slice(0, 300) }));
+}
+function cleanIdeas(p) {
+  if (!Array.isArray(p)) return [];
+  return p.filter(x => x && String(x.say || '').trim())
+    .slice(0, 3)
+    .map(x => ({ say: String(x.say).trim().slice(0, 60), why: String(x.why || '').trim().slice(0, 180) }));
 }
 
 export default async function handler(req, res) {
@@ -133,6 +150,7 @@ export default async function handler(req, res) {
       text: answer,
       lang,
       proposals: cleanProposals(j.proposals),
+      ideas: cleanIdeas(j.ideas),
       learn: !!j.learn,
       sources: [...new Set(sources)],
       cost: costOf(r.usage),
