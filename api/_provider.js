@@ -40,6 +40,12 @@ function conf() {
   return { url: d.url, model: process.env.AI_MODEL || d.model };
 }
 
+/* Moonshot's current Kimi models accept temperature 1 only ("invalid temperature:
+   only 1 is allowed for this model"); everyone else is happier a bit cooler. */
+function temp(t) {
+  return P === 'moonshot' ? 1 : t;
+}
+
 function assertKey() {
   if (!KEY) throw new Error('AI_API_KEY is not set (or ANTHROPIC_API_KEY for the anthropic provider)');
   if (P === 'compatible' && !process.env.AI_BASE_URL) throw new Error('AI_BASE_URL is required when AI_PROVIDER=compatible');
@@ -73,7 +79,7 @@ export async function chat(prompt, maxTokens = 600) {
     headers['X-Title'] = 'BitButt Garage';
   }
   const j = await post(url, headers, {
-    model, max_tokens: maxTokens, temperature: 0.3,
+    model, max_tokens: maxTokens, temperature: temp(0.3),
     messages: [{ role: 'user', content: prompt }]
   });
   return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
@@ -117,7 +123,7 @@ export async function chatWithSearch(prompt, searchQuery, maxTokens = 1200) {
       'X-Title': 'BitButt Garage'
     }, {
       model: model.endsWith(':online') ? model : model + ':online',
-      max_tokens: maxTokens, temperature: 0.2,
+      max_tokens: maxTokens, temperature: temp(0.2),
       messages: [{ role: 'user', content: prompt }]
     });
     const m = (j.choices && j.choices[0] && j.choices[0].message) || {};
@@ -135,7 +141,7 @@ export async function chatWithSearch(prompt, searchQuery, maxTokens = 1200) {
     const tools = [{ type: 'builtin_function', function: { name: '$web_search' } }];
     for (let hop = 0; hop < 3; hop++) {
       const j = await post(url, { authorization: 'Bearer ' + KEY },
-        { model, max_tokens: maxTokens, temperature: 0.2, messages, tools });
+        { model, max_tokens: maxTokens, temperature: temp(0.2), messages, tools });
       const ch = (j.choices && j.choices[0]) || {};
       const msg = ch.message || {};
       if (ch.finish_reason !== 'tool_calls' || !msg.tool_calls) {
@@ -199,7 +205,7 @@ export async function converse(messages, opts = {}) {
       'X-Title': 'BitButt Garage'
     }, {
       model: search ? (model.endsWith(':online') ? model : model + ':online') : model.replace(/:online$/, ''),
-      max_tokens: maxTokens, temperature: 0.3, messages
+      max_tokens: maxTokens, temperature: temp(0.3), messages
     });
     addUsage(j);
     const m = (j.choices && j.choices[0] && j.choices[0].message) || {};
@@ -216,7 +222,7 @@ export async function converse(messages, opts = {}) {
     for (let hop = 0; hop < maxHops; hop++) {
       const last = hop === maxHops - 1;
       const j = await post(url, { authorization: 'Bearer ' + KEY },
-        Object.assign({ model, max_tokens: maxTokens, temperature: 0.3, messages: msgs },
+        Object.assign({ model, max_tokens: maxTokens, temperature: temp(0.3), messages: msgs },
           last ? { tool_choice: 'none' } : { tools }));
       addUsage(j);
       const ch = (j.choices && j.choices[0]) || {};
@@ -235,7 +241,7 @@ export async function converse(messages, opts = {}) {
 
   // plain OpenAI-compatible call (moonshot without search, deepseek, openai, compatible)
   const j = await post(url, { authorization: 'Bearer ' + KEY },
-    { model, max_tokens: maxTokens, temperature: 0.3, messages });
+    { model, max_tokens: maxTokens, temperature: temp(0.3), messages });
   addUsage(j);
   return { text: (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '', usage, sources: [] };
 }
