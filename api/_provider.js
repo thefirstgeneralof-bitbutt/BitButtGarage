@@ -4,13 +4,15 @@
 // The app only ever POSTs {prompt} to /api/mod and /api/specs. Which model
 // answers is decided here, by environment variables — no app code changes.
 //
-//   AI_PROVIDER   openrouter | moonshot | deepseek | openai | compatible | anthropic
+//   AI_PROVIDER   gemini | openrouter | moonshot | deepseek | openai | compatible | anthropic
 //   AI_API_KEY    the key for that provider
 //   AI_MODEL      optional model override (each provider has a sane default)
 //   AI_BASE_URL   only for AI_PROVIDER=compatible (Groq, Together, Ollama,
 //                 an OpenClaw gateway, anything speaking OpenAI chat/completions)
 //
 // Web search, for the spec lookup:
+//   - gemini      Google Search grounding, built in. Fast, 5,000 searches a month
+//                 free, and it is the same search the kid already trusts.
 //   - openrouter  native, via the ":online" suffix. Works with ANY model it hosts,
 //                 including DeepSeek and Kimi. Simplest option by far.
 //   - moonshot    native $web_search built-in tool.
@@ -28,6 +30,9 @@ const DEFAULTS = {
   // returns "400 tokenization failed" on k3. OpenClaw's own kimi-search tool
   // defaults to k2.6 for the same reason.
   moonshot:   { url: 'https://api.moonshot.ai/v1/chat/completions',   model: 'kimi-k2.6' },
+  // "gemini-flash-latest" is Google's alias for the current Flash model, so this
+  // keeps working when they ship the next one. Pin AI_MODEL to freeze it.
+  gemini:     { url: 'https://generativelanguage.googleapis.com/v1beta/models/', model: 'gemini-flash-latest' },
   deepseek:   { url: 'https://api.deepseek.com/chat/completions',     model: 'deepseek-v4-flash' },
   openrouter: { url: 'https://openrouter.ai/api/v1/chat/completions', model: 'deepseek/deepseek-v4-flash' },
   openai:     { url: 'https://api.openai.com/v1/chat/completions',    model: 'gpt-5.2' },
@@ -62,10 +67,48 @@ async function post(url, headers, body) {
   try { return JSON.parse(txt); } catch (e) { throw new Error('provider sent non-JSON: ' + txt.slice(0, 200)); }
 }
 
+// --- Gemini ------------------------------------------------------------------
+// One call. Google runs the searches itself when the google_search tool is on
+// and hands back the pages it used in groundingMetadata.
+async function gemini(messages, { search = true, maxTokens = 900, temperature = 0.3 } = {}) {
+  const { url, model } = conf();
+  const system = messages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
+  const contents = messages.filter(m => m.role !== 'system').map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: String(m.content) }]
+  }));
+  const body = {
+    contents,
+    generationConfig: { temperature, maxOutputTokens: maxTokens }
+  };
+  if (system) body.systemInstruction = { parts: [{ text: system }] };
+  if (search) body.tools = [{ google_search: {} }];
+  const j = await post(url + encodeURIComponent(model) + ':generateContent',
+    { 'x-goog-api-key': KEY }, body);
+  const c = (j.candidates && j.candidates[0]) || {};
+  const text = ((c.content && c.content.parts) || []).map(p => p.text || '').join('').trim();
+  const gm = c.groundingMetadata || {};
+  const sources = [...new Set((gm.groundingChunks || []).map(ch => ch.web && ch.web.uri).filter(Boolean))].slice(0, 5);
+  const u = j.usageMetadata || {};
+  const usage = {
+    input: u.promptTokenCount || 0,
+    output: (u.candidatesTokenCount || 0) + (u.thoughtsTokenCount || 0),
+    searches: (gm.webSearchQueries || []).length
+  };
+  if (!text && c.finishReason && c.finishReason !== 'STOP') {
+    throw new Error('gemini stopped: ' + c.finishReason);
+  }
+  return { text, usage, sources };
+}
+
 // --- plain completion, no tools -------------------------------------------
 export async function chat(prompt, maxTokens = 600) {
   assertKey();
   const { url, model } = conf();
+
+  if (P === 'gemini') {
+    return (await gemini([{ role: 'user', content: prompt }], { search: false, maxTokens })).text;
+  }
 
   if (P === 'anthropic') {
     const j = await post(url, { 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
@@ -114,6 +157,12 @@ async function runSearch(query) {
 export async function chatWithSearch(prompt, searchQuery, maxTokens = 1200) {
   assertKey();
   const { url, model } = conf();
+
+  // 0. Gemini — Google Search grounding, one round trip
+  if (P === 'gemini') {
+    const r = await gemini([{ role: 'user', content: prompt }], { search: true, maxTokens, temperature: 0.2 });
+    return { text: r.text, sources: r.sources };
+  }
 
   // 1. OpenRouter — ":online" bolts web search onto whatever model you picked
   if (P === 'openrouter') {
@@ -189,6 +238,10 @@ export async function converse(messages, opts = {}) {
     usage.output += u.completion_tokens || u.output_tokens || 0;
   };
 
+  if (P === 'gemini') {
+    return gemini(messages, { search, maxTokens });
+  }
+
   if (P === 'anthropic') {
     const system = messages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
     const rest = messages.filter(m => m.role !== 'system');
@@ -228,7 +281,10 @@ export async function converse(messages, opts = {}) {
       const ch = (j.choices && j.choices[0]) || {};
       const msg = ch.message || {};
       if (ch.finish_reason !== 'tool_calls' || !msg.tool_calls) {
-        return { text: msg.content || '', usage, sources: [] };
+        // thinking variants put the answer in reasoning_content when content is empty
+        const text = (msg.content || msg.reasoning_content || '').trim();
+        if (!text) throw new Error('kimi returned nothing (finish_reason=' + ch.finish_reason + ', hop ' + (hop + 1) + ')');
+        return { text, usage, sources: [] };
       }
       msgs.push(msg);
       for (const tc of msg.tool_calls) {
@@ -236,7 +292,7 @@ export async function converse(messages, opts = {}) {
         msgs.push({ role: 'tool', tool_call_id: tc.id, name: tc.function.name, content: tc.function.arguments });
       }
     }
-    return { text: '', usage, sources: [] };
+    throw new Error('kimi kept searching past ' + maxHops + ' rounds and never answered');
   }
 
   // plain OpenAI-compatible call (moonshot without search, deepseek, openai, compatible)
