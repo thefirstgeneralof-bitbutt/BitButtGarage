@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#100e0c">
+<title>BitButt Learn</title>
+<meta name="theme-color" content="#100e0c">
+<link rel="icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#100e0c;--bg2:#161311;--panel:#1a1614;--panel2:#1f1a17;--sunk:#0b0a09;
+  --line:#2a2320;--line2:#342b26;--line3:#43372f;
+  --text:#f3efe9;--mid:#a89e94;--dim:#8a7f75;--dimmer:#6b625a;
+  --accent:#e8973f;--accent2:#f5bb72;--gain:#4ade80;--loss:#ff5f56;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:Archivo,Helvetica,Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+a{color:var(--accent2)}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.tnum{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+html:not([lang=pl]) [data-pl]{display:none!important}
+html:not([lang=en]) [data-en]{display:none!important}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;gap:10px;padding:10px 16px;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top .inner{max-width:1040px;margin:0 auto;width:100%;display:flex;align-items:center;gap:10px}
+.home{display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-decoration:none;color:inherit}
+.badge{width:30px;height:30px;border-radius:9px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#2a1a08;background:linear-gradient(150deg,var(--accent2),var(--accent));box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 45%,transparent),0 0 18px color-mix(in srgb,var(--accent) 38%,transparent)}
+.mark{font-weight:700;font-size:16px;letter-spacing:-.01em;white-space:nowrap;line-height:1.1}
+.mark em{font-style:normal;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dimmer);margin-top:2px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line3);font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);white-space:nowrap;text-decoration:none;transition:border-color .15s,color .15s}
+.pill:hover{color:var(--text);border-color:var(--accent)}
+.pill b{color:var(--text)}
+.pill svg{width:14px;height:14px}
+@media (max-width:420px){.tag{display:none}.pill span.lbl{display:none}.pill{padding:0 10px}}
+
+.page{max-width:1040px;margin:0 auto;padding-block:0 70px}
+section{padding:0 16px}
+
+.hero{position:relative;padding:54px 16px 44px;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 50% at 30% 10%,color-mix(in srgb,var(--accent) 10%,transparent),transparent 70%),
+  linear-gradient(color-mix(in srgb,var(--line) 70%,transparent) 1px,transparent 1px),
+  linear-gradient(90deg,color-mix(in srgb,var(--line) 70%,transparent) 1px,transparent 1px);
+  background-size:100% 100%,28px 28px,28px 28px;
+  mask-image:linear-gradient(#000 30%,transparent);-webkit-mask-image:linear-gradient(#000 30%,transparent);pointer-events:none}
+.hero > *{position:relative}
+.hero .eyebrow{color:var(--accent2)}
+.hero h1{margin:10px 0 0;font-size:clamp(36px,8vw,76px);font-weight:900;letter-spacing:-.04em;line-height:.96;text-wrap:balance;max-width:14ch}
+.hero h1 .hl{background:linear-gradient(transparent 62%,color-mix(in srgb,var(--accent) 55%,transparent) 62% 92%,transparent 92%);padding:0 .06em}
+.hero p{margin:20px 0 0;max-width:52ch;color:var(--mid);font-size:clamp(16px,2.2vw,19px)}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.btn{height:48px;padding:0 20px;border-radius:12px;border:1px solid var(--line3);font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--text);display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--panel);text-decoration:none;transition:border-color .15s}
+.btn:hover{border-color:var(--accent)}
+.btn.hot{background:linear-gradient(150deg,var(--accent2),var(--accent));color:#2a1a08;border-color:transparent;font-weight:700;box-shadow:0 0 22px color-mix(in srgb,var(--accent) 35%,transparent)}
+.btn svg{width:15px;height:15px}
+.btn .soon{font-size:9px;opacity:.75;margin-left:4px}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;padding-top:30px}
+@media (max-width:760px){.split{grid-template-columns:1fr}}
+h2{margin:0;font-size:clamp(22px,3.4vw,30px);font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+.lead{color:var(--mid);margin:10px 0 0;max-width:46ch}
+.steps{display:flex;flex-direction:column;gap:0;margin-top:22px;border-top:1px solid var(--line)}
+.step{display:grid;grid-template-columns:44px 1fr;gap:12px;padding:16px 0;border-bottom:1px solid var(--line)}
+.step .n{font-family:var(--mono);font-weight:700;font-size:20px;color:var(--accent);line-height:1.1}
+.step b{display:block;font-weight:700;font-size:16px}
+.step span{color:var(--mid);font-size:14.5px}
+
+.demo{border:1px solid var(--line2);border-radius:18px;background:var(--bg2);overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.45)}
+.demo .head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.avatar{width:34px;height:34px;border-radius:10px;background:var(--panel2);border:1px solid var(--line3);display:flex;align-items:center;justify-content:center;color:var(--accent2);flex:0 0 auto}
+.avatar svg{width:18px;height:18px}
+.demo .head b{display:block;font-weight:800;font-size:15px;line-height:1.1}
+.demo .head span{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.log{padding:14px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:92%;font-size:14.5px}
+.msg.me{align-self:flex-end;background:var(--panel2);border:1px solid var(--line2);border-radius:14px 14px 4px 14px;padding:9px 12px}
+.msg.ai{align-self:flex-start;border-left:2px solid var(--accent);padding:2px 0 2px 12px}
+.msg.ai .who{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent2);margin-bottom:3px}
+.msg.ai p{margin:0 0 6px}.msg.ai p:last-child{margin:0}
+.msg .math{font-family:var(--mono);font-weight:700;color:var(--text);background:var(--sunk);padding:2px 6px;border-radius:5px}
+.msg .ok{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#0f2a17;background:var(--gain);padding:3px 7px;border-radius:5px;font-weight:700;transform:rotate(-2deg)}
+.demo .foot{display:flex;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--line);font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dimmer)}
+
+.subjects{padding-top:44px}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:18px}
+.chip{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--panel)}
+.chip .ic{width:30px;height:30px;border-radius:8px;background:var(--panel2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--accent2);margin-bottom:10px}
+.chip .ic svg{width:16px;height:16px}
+.chip b{display:block;font-weight:700}
+.chip span{color:var(--dim);font-size:13px}
+
+.rules{padding-top:44px}
+.rulegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0;margin-top:18px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel)}
+.rule{padding:16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.rule .eyebrow{color:var(--accent2)}
+.rule b{display:block;margin-top:6px;font-weight:700}
+.rule span{color:var(--mid);font-size:14px}
+
+.family{padding-top:50px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);margin-top:50px}
+.family .fam{display:flex;gap:10px;flex-wrap:wrap}
+.family .mark{font-size:15px}
+.family .eyebrow{width:100%}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="inner">
+  <a class="home" href="/" aria-label="BitButt Learn">
+    <div class="badge">B</div>
+    <div><div class="mark">bitbutt <em>learn</em></div><div class="tag">Tutor · concept landing</div></div>
+  </a>
+  <button class="pill" id="langBtn" type="button" title="Switch language"><span id="langLbl"><b>PL</b> ⇄ EN</span></button>
+  <a class="pill" href="/" id="garageLink">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M8 20v-6h8v6"/></svg>
+    <span class="lbl">Garage</span>
+  </a>
+</div></header>
+
+<main class="page">
+  <section class="hero">
+    <div class="eyebrow" data-pl>Dla Charliego · matma, polski, angielski, fizyka</div>
+    <div class="eyebrow" data-en>For Charlie · maths, Polish, English, physics</div>
+    <h1 data-pl>Tłumaczy. <span class="hl">Nie odrabia</span> za ciebie.</h1>
+    <h1 data-en>Explains. <span class="hl">Never does it</span> for you.</h1>
+    <p data-pl>Twój własny korepetytor. Wrzucasz zadanie, on pyta co już wiesz, ty rozwiązujesz, on sprawdza i pokazuje gdzie był błąd. Po polsku albo po angielsku — jak w garażu.</p>
+    <p data-en>Your own tutor. Drop in the task, it asks what you already know, you solve it, it checks and shows where the mistake was. In Polish or English — same as the garage.</p>
+    <div class="cta">
+      <a class="btn hot" href="#demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V6a2 2 0 0 1 2-2h13v15"/><path d="M4 19a2 2 0 0 0 2 2h13"/><path d="M8 8h7M8 12h5"/></svg><span data-pl>Otwórz Learn</span><span data-en>Open Learn</span><span class="soon">· soon</span></a>
+      <a class="btn" href="/"><span data-pl>Wróć do garażu</span><span data-en>Back to the garage</span></a>
+    </div>
+  </section>
+
+  <section class="split" id="demo">
+    <div>
+      <div class="eyebrow" data-pl>Jak wygląda sesja</div>
+      <div class="eyebrow" data-en>How a session goes</div>
+      <h2 data-pl>Trzy kroki, zawsze w tej kolejności</h2>
+      <h2 data-en>Three steps, always in this order</h2>
+      <p class="lead" data-pl>Kolejność jest celowa: najpierw ty myślisz, potem on sprawdza. Odwrotnie nie działa.</p>
+      <p class="lead" data-en>The order is deliberate: you think first, it checks second. It does not work the other way round.</p>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div><b data-pl>Wrzuć zadanie</b><b data-en>Drop in the task</b><span data-pl>Wpisz albo zrób zdjęcie z zeszytu.</span><span data-en>Type it or photograph it from the notebook.</span></div></div>
+        <div class="step"><div class="n">2</div><div><b data-pl>On pyta, ty próbujesz</b><b data-en>It asks, you try</b><span data-pl>Jedno pytanie naraz. Podpowiedź dopiero, gdy utkniesz.</span><span data-en>One question at a time. A hint only once you're stuck.</span></div></div>
+        <div class="step"><div class="n">3</div><div><b data-pl>Sprawdza i tłumaczy błąd</b><b data-en>It checks and explains the mistake</b><span data-pl>Nie „źle”, tylko gdzie i dlaczego. Potem jedno podobne zadanie, żeby utrwalić.</span><span data-en>Not “wrong”, but where and why. Then one similar task to make it stick.</span></div></div>
+      </div>
+    </div>
+
+    <div class="demo">
+      <div class="head">
+        <div class="avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V6a2 2 0 0 1 2-2h13v15"/><path d="M4 19a2 2 0 0 0 2 2h13"/><path d="M8 8h7M8 12h5"/></svg></div>
+        <div><b>Tutor</b><span data-pl>Matematyka · klasa 7 · przykład</span><span data-en>Maths · grade 7 · sample</span></div>
+      </div>
+      <div class="log">
+        <div class="msg me" data-pl>Rozwiąż: 3x + 7 = 22</div>
+        <div class="msg me" data-en>Solve: 3x + 7 = 22</div>
+        <div class="msg ai" data-pl><div class="who">Tutor</div><p>Zanim policzymy: co trzeba zrobić z tym <span class="math">+ 7</span>, żeby <span class="math">3x</span> zostało samo po lewej?</p></div>
+        <div class="msg ai" data-en><div class="who">Tutor</div><p>Before we calculate: what do you do with that <span class="math">+ 7</span> so that <span class="math">3x</span> is alone on the left?</p></div>
+        <div class="msg me" data-pl>odjąć 7 z obu stron, czyli 3x = 15</div>
+        <div class="msg me" data-en>subtract 7 from both sides, so 3x = 15</div>
+        <div class="msg ai" data-pl><div class="who">Tutor</div><p>Dokładnie. Teraz <span class="math">3x = 15</span>. Co zostało do zrobienia?</p></div>
+        <div class="msg ai" data-en><div class="who">Tutor</div><p>Exactly. Now <span class="math">3x = 15</span>. What's left to do?</p></div>
+        <div class="msg me" data-pl>x = 15 − 3 = 12</div>
+        <div class="msg me" data-en>x = 15 − 3 = 12</div>
+        <div class="msg ai" data-pl><div class="who">Tutor</div><p>Blisko, ale tu jest błąd: <span class="math">3x</span> to „3 razy x”, nie „3 plus x”. Odwrotnością mnożenia jest dzielenie. Spróbuj jeszcze raz.</p></div>
+        <div class="msg ai" data-en><div class="who">Tutor</div><p>Close, but here's the slip: <span class="math">3x</span> means “3 times x”, not “3 plus x”. The opposite of multiplying is dividing. Try once more.</p></div>
+        <div class="msg me" data-pl>x = 15 ÷ 3 = 5</div>
+        <div class="msg me" data-en>x = 15 ÷ 3 = 5</div>
+        <div class="msg ai" data-pl><div class="who">Tutor</div><p><span class="ok">✓ Rozwiązane</span>&nbsp; Sprawdź sam: 3·5 + 7 = 22. Jeszcze jedno podobne? <span class="math">5x − 4 = 21</span></p></div>
+        <div class="msg ai" data-en><div class="who">Tutor</div><p><span class="ok">✓ Solved</span>&nbsp; Check it yourself: 3·5 + 7 = 22. One more like it? <span class="math">5x − 4 = 21</span></p></div>
+      </div>
+      <div class="foot"><span data-pl>Przykładowa rozmowa</span><span data-en>Sample conversation</span><span>PL ⇄ EN</span></div>
+    </div>
+  </section>
+
+  <section class="subjects">
+    <div class="eyebrow" data-pl>Przedmioty na start</div>
+    <div class="eyebrow" data-en>Subjects to start with</div>
+    <h2 data-pl>To, co jest w plecaku</h2>
+    <h2 data-en>What's in the school bag</h2>
+    <div class="chips">
+      <div class="chip"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></div><b data-pl>Matematyka</b><b data-en>Maths</b><span data-pl>Równania, ułamki, procenty, geometria.</span><span data-en>Equations, fractions, percentages, geometry.</span></div>
+      <div class="chip"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M6 16l10-10 2 2-10 10H6z"/></svg></div><b data-pl>Polski</b><b data-en>Polish</b><span data-pl>Wypracowania, ortografia, lektury.</span><span data-en>Essays, spelling, set books.</span></div>
+      <div class="chip"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h12M9 3v2c0 5-3 9-6 11M5 9c0 3 4 7 8 8"/><path d="M13 21l4-9 4 9M14.5 17.5h5"/></svg></div><b data-pl>Angielski</b><b data-en>English</b><span data-pl>Słówka z aut liczą się podwójnie.</span><span data-en>Car vocabulary counts double.</span></div>
+      <div class="chip"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6M8 9h8l4 10H4z"/></svg></div><b data-pl>Fizyka</b><b data-en>Physics</b><span data-pl>Prędkość, siła, moc — na przykładach z garażu.</span><span data-en>Speed, force, power — with garage examples.</span></div>
+    </div>
+  </section>
+
+  <section class="rules">
+    <div class="eyebrow" data-pl>Te same zasady co w garażu</div>
+    <div class="eyebrow" data-en>Same rules as the garage</div>
+    <h2 data-pl>Dla rodzica, w jednym oddechu</h2>
+    <h2 data-en>For the parent, in one breath</h2>
+    <div class="rulegrid">
+      <div class="rule"><b data-pl>Kod rodzinny</b><b data-en>Family code</b><span data-pl>Ten sam, co w garażu. Nikt obcy nie wchodzi.</span><span data-en>Same one as the garage. Nobody else gets in.</span></div>
+      <div class="rule"><b data-pl>Nie odrabia za niego</b><b data-en>Never does it for him</b><span data-pl>Pełne rozwiązanie pokazuje dopiero po jego próbie.</span><span data-en>The full solution appears only after his own attempt.</span></div>
+      <div class="rule"><b data-pl>Źródła pod ręką</b><b data-en>Sources on hand</b><span data-pl>Gdy szuka faktu w sieci, pokazuje link.</span><span data-en>When it looks a fact up online, it shows the link.</span></div>
+      <div class="rule"><b data-pl>Limit dzienny</b><b data-en>Daily limit</b><span data-pl>Liczba pytań na dzień jest ustalona z góry.</span><span data-en>Questions per day are capped up front.</span></div>
+    </div>
+  </section>
+
+  <section class="family">
+    <div class="eyebrow" data-pl>Rodzina bitbutt</div>
+    <div class="eyebrow" data-en>The bitbutt family</div>
+    <div class="fam">
+      <a class="pill" href="/"><div class="badge" style="width:20px;height:20px;font-size:11px;border-radius:6px">B</div><span class="mark">bitbutt <em>garage</em></span></a>
+      <span class="pill"><div class="badge" style="width:20px;height:20px;font-size:11px;border-radius:6px">B</div><span class="mark">bitbutt <em>learn</em></span></span>
+    </div>
+    <div class="eyebrow" data-pl style="width:auto">Makieta · logo jeszcze niegotowe · kolory ustalone</div>
+    <div class="eyebrow" data-en style="width:auto">Concept · logo not final · colours are</div>
+  </section>
+</main>
+
+<script>
+"use strict";
+const root = document.documentElement;
+function setLang(l){
+  root.setAttribute('lang', l);
+  document.getElementById('langLbl').innerHTML = l === 'pl' ? '<b>PL</b> ⇄ EN' : 'PL ⇄ <b>EN</b>';
+  try { localStorage.setItem('bbl.lang', l); } catch (e) {}
+}
+let start = 'pl';
+try { const s = localStorage.getItem('bbl.lang'); if (s) start = s; else start = (navigator.language||'').toLowerCase().startsWith('en') ? 'en' : 'pl'; } catch (e) { start = 'pl'; }
+setLang(start);
+document.getElementById('langBtn').onclick = () => setLang(root.getAttribute('lang') === 'pl' ? 'en' : 'pl');
+</script>
+</body>
+</html>
