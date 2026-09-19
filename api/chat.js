@@ -74,8 +74,17 @@ function systemPrompt(lang, car) {
 function parseLoose(t) {
   const s = String(t || '').replace(/```json|```/g, '').trim();
   const a = s.indexOf('{'), b = s.lastIndexOf('}');
-  if (a < 0 || b < a) return null;
-  try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { return null; }
+  if (a >= 0 && b > a) {
+    try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { /* fall through */ }
+  }
+  // Cut off mid-JSON (token cap)? Salvage the answer text at least.
+  const m = s.match(/"answer"\s*:\s*"((?:[^"\\]|\\.)*)/);
+  if (m) {
+    let answer = m[1];
+    try { answer = JSON.parse('"' + m[1] + '"'); } catch (e) { /* keep raw */ }
+    return { answer: answer.replace(/\s*\[[\d.,\s]*$/, '').trim(), proposals: [], learn: false, sources: [] };
+  }
+  return s.startsWith('{') ? null : { answer: s };
 }
 
 const KEYS = Object.keys(STAT_UNITS);

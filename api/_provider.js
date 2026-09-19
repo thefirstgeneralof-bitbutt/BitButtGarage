@@ -77,16 +77,31 @@ async function gemini(messages, { search = true, maxTokens = 900, temperature = 
     role: m.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: String(m.content) }]
   }));
+  // Flash "thinks" before it answers and the thoughts count against
+  // maxOutputTokens, so a 900-token cap can end mid-sentence. Keep the thinking
+  // low (a pit-lane answer does not need a dissertation) and leave headroom.
   const body = {
     contents,
-    generationConfig: { temperature, maxOutputTokens: maxTokens }
+    generationConfig: {
+      temperature,
+      maxOutputTokens: maxTokens + 1500,
+      thinkingConfig: { thinkingLevel: process.env.AI_THINKING || 'low' }
+    }
   };
   if (system) body.systemInstruction = { parts: [{ text: system }] };
   if (search) body.tools = [{ google_search: {} }];
-  const j = await post(url + encodeURIComponent(model) + ':generateContent',
-    { 'x-goog-api-key': KEY }, body);
+  const endpoint = url + encodeURIComponent(model) + ':generateContent';
+  let j;
+  try {
+    j = await post(endpoint, { 'x-goog-api-key': KEY }, body);
+  } catch (e) {
+    // An older/newer model that does not know this thinking level: retry without.
+    if (!/thinking/i.test(String(e.message))) throw e;
+    delete body.generationConfig.thinkingConfig;
+    j = await post(endpoint, { 'x-goog-api-key': KEY }, body);
+  }
   const c = (j.candidates && j.candidates[0]) || {};
-  const text = ((c.content && c.content.parts) || []).map(p => p.text || '').join('').trim();
+  const text = ((c.content && c.content.parts) || []).filter(p => !p.thought).map(p => p.text || '').join('').trim();
   const gm = c.groundingMetadata || {};
   const sources = [...new Set((gm.groundingChunks || []).map(ch => ch.web && ch.web.uri).filter(Boolean))].slice(0, 5);
   const u = j.usageMetadata || {};
