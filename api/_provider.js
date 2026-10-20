@@ -73,10 +73,18 @@ async function post(url, headers, body) {
 async function gemini(messages, { search = true, maxTokens = 900, temperature = 0.3 } = {}) {
   const { url, model } = conf();
   const system = messages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
-  const contents = messages.filter(m => m.role !== 'system').map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: String(m.content) }]
-  }));
+  /* A message may carry a picture the kid took of his own screen. Gemini wants
+     it as inline base64 next to the text, and it has to come before the words
+     it belongs to. */
+  const contents = messages.filter(m => m.role !== 'system').map(m => {
+    const parts = [];
+    const shot = /^data:image\/(jpeg|jpg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(String(m.image || ''));
+    if (shot) {
+      parts.push({ inlineData: { mimeType: 'image/' + (shot[1] === 'jpg' ? 'jpeg' : shot[1]), data: shot[2] } });
+    }
+    parts.push({ text: String(m.content) });
+    return { role: m.role === 'assistant' ? 'model' : 'user', parts };
+  });
   // Flash "thinks" before it answers and the thoughts count against
   // maxOutputTokens, so a 900-token cap can end mid-sentence. Keep the thinking
   // low (a pit-lane answer does not need a dissertation) and leave headroom.
